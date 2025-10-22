@@ -1,5 +1,7 @@
 package dev.zisan.smsagent.controller;
 
+import com.twilio.twiml.MessagingResponse;
+import com.twilio.twiml.messaging.Message;
 import dev.zisan.smsagent.services.InfoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,33 +21,21 @@ public class TwilioController {
 
     private final InfoService infoService;
 
+
     @PostMapping(value = "/whatsapp", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE, produces = MediaType.APPLICATION_XML_VALUE)
-    public ResponseEntity<String> handleWhatsappMessage(@RequestParam("From") String from,
+    public ResponseEntity<String> handleWhatsappMessageWithSDK(@RequestParam("From") String from,
                                                         @DefaultValue("Tell me about Zisan.") @RequestParam("Body") String body,
                                                         @RequestParam("MessageSid") String messageSid) {
+
         log.info("Received WhatsApp message from: {}, MessageSid: {}, Body: {}", from, messageSid, body);
 
         String response = infoService.getInfoResponse(body);
 
-        // Create proper TwiML response for WhatsApp
-        String twimlResponse = """
-                <?xml version="1.0" encoding="UTF-8"?>
-                <Response>
-                    <Message>%s</Message>
-                </Response>
-                """.formatted(escapeXml(response));
+        Message message = new Message.Builder(response).build();
+        MessagingResponse res = new MessagingResponse.Builder().message(message).build();
 
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_XML)
-                .body(twimlResponse);
-    }
+        System.out.println(res.toXml());
 
-    private String escapeXml(String text) {
-        if (text == null) return "";
-        return text.replace("&", "&amp;")
-                   .replace("<", "&lt;")
-                   .replace(">", "&gt;")
-                   .replace("\"", "&quot;")
-                   .replace("'", "&apos;");
+        return ResponseEntity.ok(res.toXml());
     }
 }
