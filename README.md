@@ -1,3 +1,4 @@
+# 4 min short project demo [here ↗](https://youtu.be/3RggQ4C58dQ)
 # SMS Recruiter Support Agent
 
 A Spring Boot application that provides AI-powered document processing and question-answering capabilities through vector embeddings and natural language processing.
